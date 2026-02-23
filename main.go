@@ -1,21 +1,30 @@
 package main
 
 import (
-	files "Bins/Files"
+	"Bins/Files"
+	"Bins/api"
+	"Bins/storage"
 	"fmt"
 )
 
 func main() {
+
+	db := storage.NewMemoryDB()
+	fm := Files.NewMemoryFiles()
+
+	service := api.NewService(db, fm)
+	service.Run()
+
 	filename := "data.json"
 
-	content, err := files.ReadFileReadll(filename)
+	content, err := Files.ReadFileReadll(filename)
 	if err != nil {
 		fmt.Println("Ошибка чтения файла:", err)
 		return
 	}
 	fmt.Println("Содержимое файла:", string(content))
 
-	if files.IsJSONFile(filename) {
+	if Files.IsJSONFile(filename) {
 		fmt.Println("Это JSON файл!")
 	} else {
 		fmt.Println("Это не JSON файл.")
