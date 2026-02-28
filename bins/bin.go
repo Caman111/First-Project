@@ -7,20 +7,20 @@ import (
 
 type Bin struct {
 	ID        string
-	private   bool
-	createdAt time.Time
-	name      string
+	Private   bool
+	CreatedAt time.Time
+	Name      string
 }
 
-func newBin(id string, private bool, name string) Bin {
+func NewBin(id string, private bool, name string) Bin {
 	return Bin{
 		ID:        id,
-		private:   private,
-		createdAt: time.Now(),
-		name:      name,
+		Private:   private,
+		CreatedAt: time.Now(),
+		Name:      name,
 	}
 }
 func mBain() {
-	Bin := newBin("1", true, "мой bin")
+	Bin := NewBin("1", true, "мой bin")
 	fmt.Printf("%+v\n", Bin)
 }
