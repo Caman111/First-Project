@@ -34,6 +34,6 @@ func main() {
 	if Files.IsJSONFile(filename) {
 		fmt.Println("Это JSON файл!")
 	} else {
-		fmt.Println("Это не JSON файл.")
+		fmt.Println("Это не JSON файл!")
 	}
 }
