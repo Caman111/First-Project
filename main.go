@@ -3,37 +3,158 @@ package main
 import (
 	"Bins/Files"
 	"Bins/api"
-	"Bins/config"
-	"Bins/storage"
+	"Bins/models"
+	"encoding/json"
+	"flag"
 	"fmt"
+	"os"
+
+	"github.com/joho/godotenv"
 )
+
+const apiURL = "https://api.jsonbin.io/v3/b"
+const localFile = "my.json"
+
+func loadLocal() models.LocalData {
+
+	var data models.LocalData
+
+	content, err := os.ReadFile(localFile)
+	if err != nil {
+		return data
+	}
+
+	json.Unmarshal(content, &data)
+
+	return data
+}
+
+func saveLocal(data models.LocalData) {
+
+	content, _ := json.MarshalIndent(data, "", "  ")
+
+	os.WriteFile(localFile, content, 0644)
+
+}
 
 func main() {
 
-	cfg, err := config.LoadConfig()
+	err := godotenv.Load()
 	if err != nil {
-		panic(err)
+		fmt.Println("Не найден .env файл")
 	}
-	fmt.Println(cfg.Key)
 
-	db := storage.NewMemoryDB()
-	fm := Files.NewMemoryFiles()
+	create := flag.Bool("create", false, "")
+	get := flag.Bool("get", false, "")
+	update := flag.Bool("update", false, "")
+	deleteF := flag.Bool("delete", false, "")
+	list := flag.Bool("list", false, "")
 
-	service := api.NewService(db, fm, &cfg)
-	service.Run()
-	filename := "data.json"
+	file := flag.String("file", "", "")
+	name := flag.String("name", "", "")
+	id := flag.String("id", "", "")
 
-	content, err := Files.ReadFileReadll(filename)
-	if err != nil {
-		fmt.Println("Ошибка чтения файла:", err)
-		return
+	flag.Parse()
+
+	local := loadLocal()
+
+	if *create {
+
+		data, err := Files.ReadFile(*file)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		res, err := api.CreateBin(apiURL, data)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		var r map[string]interface{}
+		json.Unmarshal(res, &r)
+
+		meta := r["metadata"].(map[string]interface{})
+		binID := fmt.Sprintf("%v", meta["id"])
+
+		local.Bins = append(local.Bins, models.LocalBin{
+			ID:   binID,
+			Name: *name,
+		})
+
+		saveLocal(local)
+
+		fmt.Println("created:", binID)
 	}
-	fmt.Println("Содержимое файла:", string(content))
 
-	if Files.IsJSONFile(filename) {
-		fmt.Println("Это JSON файл!")
-	} else {
-		fmt.Println("Это не JSON файл.")
+	
+	if *get {
+
+		url := apiURL + "/" + *id
+
+		res, err := api.GetBin(url)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println(string(res))
+	}
+	
+	if *update {
+
+		data, err := Files.ReadFile(*file)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		url := apiURL + "/" + *id
+
+		_, err = api.UpdateBin(url, data)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println("updated:", *id)
+	}
+
+	if *deleteF {
+
+		url := apiURL + "/" + *id
+
+		_, err := api.DeleteBin(url)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		for i, b := range local.Bins {
+
+			if b.ID == *id {
+
+				local.Bins = append(local.Bins[:i], local.Bins[i+1:]...)
+				break
+
+			}
+
+		}
+
+		saveLocal(local)
+
+		fmt.Println("deleted:", *id)
+	}
+
+	if *list {
+
+		for _, b := range local.Bins {
+
+			fmt.Println(b.ID, "-", b.Name)
+
+		}
+
 	}
 
 }

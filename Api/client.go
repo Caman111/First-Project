@@ -1,29 +1,87 @@
 package api
 
 import (
-	"Bins/Files"
-	"Bins/config"
-	"Bins/storage"
-	"fmt"
+	"bytes"
+	"io"
+	"net/http"
+	"os"
 )
 
-type Service struct {
-	DB     storage.Database
-	FM     Files.FileManager
-	Config *config.Config
+func setHeaders(req *http.Request) {
+	key := os.Getenv("X_MASTER_KEY")
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-MASTER-KEY", key)
 }
 
-func NewService(db storage.Database, fm Files.FileManager, cfg *config.Config) *Service {
-	return &Service{
-		DB:     db,
-		FM:     fm,
-		Config: cfg,
+func CreateBin(url string, data []byte) ([]byte, error) {
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
 	}
+
+	setHeaders(req)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return io.ReadAll(resp.Body)
 }
 
-func (s *Service) Run() {
-	s.DB.Set("user", "Kama")
-	s.FM.Save("log.txt", "started")
+func GetBin(url string) ([]byte, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
 
-	fmt.Println("API ключ:", s.Config.Key)
+	setHeaders(req)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return io.ReadAll(resp.Body)
+}
+
+func UpdateBin(url string, data []byte) ([]byte, error) {
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+
+	setHeaders(req)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return io.ReadAll(resp.Body)
+}
+
+func DeleteBin(url string) ([]byte, error) {
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	setHeaders(req)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return io.ReadAll(resp.Body)
 }
