@@ -17,6 +17,6 @@ func LoadConfig() (Config, error) {
 	}
 
 	return Config{
-		Key: os.Getenv("KEY"),
+		Key: os.Getenv("X_MASTER_KEY"),
 	}, nil
 }

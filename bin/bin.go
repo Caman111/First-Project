@@ -1,7 +1,6 @@
 package bins
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -20,7 +19,10 @@ func NewBin(id string, private bool, name string) Bin {
 		Name:      name,
 	}
 }
-func mBain() {
-	Bin := NewBin("1", true, "мой bin")
-	fmt.Printf("%+v\n", Bin)
+
+type BinBins struct {
+	ID        string    `json:"id"`
+	Private   bool      `json:"private"`
+	CreatedAt time.Time `json:"createdAt"`
+	Name      string    `json:"name"`
 }
