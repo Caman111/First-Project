@@ -88,7 +88,6 @@ func main() {
 		fmt.Println("created:", binID)
 	}
 
-	
 	if *get {
 
 		url := apiURL + "/" + *id
@@ -101,7 +100,7 @@ func main() {
 
 		fmt.Println(string(res))
 	}
-	
+
 	if *update {
 
 		data, err := Files.ReadFile(*file)
